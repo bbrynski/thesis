@@ -1,0 +1,120 @@
+<p-toast position="top-right"></p-toast>
+<div class="container-fluid">
+  <h1>Statystyki wypożyczeń</h1>
+  <div class="form-row">
+    <div class="form-group col-md-3">
+        <label for="dataOd">Data początkowa generowania statystyk</label>
+        <p-calendar class="from-control" [(ngModel)]="dataOd" [locale]="pl" required ></p-calendar>
+    </div>
+    <div class="form-group col-md-3">
+        <label for="dataOd">Data końcowa generowania statystyk</label>
+        <p-calendar class="from-control" [(ngModel)]="dataDo" [locale]="pl" required ></p-calendar>
+    </div>
+    <div class="form-group col-md-6">
+        <div class="mb-2">
+            <label>Wybierz grupę sprzętu</label><br>
+            <p-selectButton (click)="updateOptions()" [options]="equipment" [(ngModel)]="selectedEquipment"></p-selectButton>
+        </div>
+        <div class="mb-2" *ngIf="options.length > 0">
+            <label>Wybierz opcję generowania statystyk</label><br>
+            <p-selectButton (click)="updateOptions()" [options]="options" [(ngModel)]="selectedOption"></p-selectButton>
+        </div>
+        <div class="mb-2" *ngIf="gender.length > 0">
+            <label>Wybierz płeć użytkowników sprzętu</label><br>
+            <p-selectButton [options]="gender" [(ngModel)]="selectedGender"></p-selectButton>
+        </div>
+        <div>
+            <button type="button" pButton (click)="generateChart()" label="Generuj statystyki" class="ui-button-success"></button>
+        </div>
+    </div>
+  </div>
+
+</div>
+<div class="container">
+  <ng-container *ngIf="isData">
+    <p-chart type="pie" [data]="data" [width]="400" [height]="400"></p-chart>
+  </ng-container>
+  <ng-container *ngIf="isModel">
+      <h4 class="mt-4">Wygenerowane statystki</h4>
+      <table class="table">
+        <thead class="thead-dark">
+      <tr>
+          <th>Model</th>
+          <th *ngIf="isPlec">Płeć użytkowników</th>
+          <th>Ilość</th>
+      </tr>
+      </thead>
+      <tbody>
+
+      <tr *ngFor="let item of model">
+          <td>{{item.Model}}</td>
+          <td *ngIf="isPlec">{{item.NazwaPlec}}</td>
+          <td>{{item.Ilosc}}</td>
+      </tr>
+      </tbody>
+    </table>
+  </ng-container>
+
+  <ng-container *ngIf="isDlugosc">
+    <h4 class="mt-4">Wygenerowane statystki</h4>
+    <table class="table">
+      <thead class="thead-dark">
+      <tr>
+          <th>Długość sprzętu</th>
+          <th *ngIf="isPlec">Płeć użytkowników</th>
+          <th>Ilość</th>
+      </tr>
+      </thead>
+      <tbody>
+
+      <tr *ngFor="let item of dlugosc">
+          <td>{{item.Dlugosc}}</td>
+          <td *ngIf="isPlec">{{item.NazwaPlec}}</td>
+          <td>{{item.Ilosc}}</td>
+      </tr>
+      </tbody>
+    </table>
+  </ng-container>
+
+  <ng-container *ngIf="isRozmiar">
+      <h4 class="mt-4">Wygenerowane statystki</h4>
+      <table class="table">
+        <thead class="thead-dark">
+      <tr>
+          <th>Rozmiar</th>
+          <th *ngIf="isPlec">Płeć użytkowników</th>
+          <th>Ilość</th>
+      </tr>
+      </thead>
+      <tbody>
+
+      <tr *ngFor="let item of rozmiar">
+          <td>{{item.Rozmiar}}</td>
+          <td *ngIf="isPlec">{{item.NazwaPlec}}</td>
+          <td>{{item.Ilosc}}</td>
+      </tr>
+      </tbody>
+    </table>
+  </ng-container>
+
+  <ng-container *ngIf="isProducent">
+      <h4 class="mt-4">Wygenerowane statystki</h4>
+      <table class="table">
+        <thead class="thead-dark">
+      <tr>
+          <th>Producent</th>
+          <th>Płeć użytkowników</th>
+          <th>Ilość</th>
+      </tr>
+      </thead>
+      <tbody>
+
+      <tr *ngFor="let item of producent">
+          <td>{{item.NazwaProducent}}</td>
+          <td>{{item.NazwaPlec}}</td>
+          <td>{{item.Ilosc}}</td>
+      </tr>
+      </tbody>
+    </table>
+  </ng-container>
+</div>

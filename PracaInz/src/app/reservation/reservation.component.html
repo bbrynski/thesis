@@ -1,0 +1,518 @@
+<p-toast position="top-right"></p-toast>
+
+<p-dialog header="Anuluj rezerwację" [(visible)]="displayDialogCancel" [modal]="true" [responsive]="true" [width]="350" [minWidth]="200" [minHeight]="80"
+        [maximizable]="true" [baseZIndex]="10000">
+    <span>
+      Czy na pewno chcesz usunąć rezerwację?
+    </span>
+        <p-footer>
+            <button type="button" pButton icon="pi pi-check" (click)="cancelReservation(cancelReservationId)" label="Tak"></button>
+            <button type="button" pButton icon="pi pi-times" (click)="displayDialogCancel=false" label="Nie" class="ui-button-secondary"></button>
+        </p-footer>
+</p-dialog>
+
+<p-dialog header="Ustawienia sprzętu" [(visible)]="displaySnowboardOptions" [modal]="true" [responsive]="true" [width]="350" [minWidth]="200" [minHeight]="80"
+        [maximizable]="true" [baseZIndex]="10000">
+    <span *ngIf="optionsSnowboard">
+      Ustawienia deski snowboardowej <br><br>
+      Dominująca noga: <strong>{{optionsSnowboard.NazwaUstawienie}}</strong><br>
+      Kąt lewe wiązanie: <strong>{{optionsSnowboard.KatLewa}} stopni</strong><br>
+      Kąt prawe wiązanie: <strong>{{optionsSnowboard.KatPrawa}} stopni</strong>
+    </span>
+        <p-footer>
+            <button type="button" pButton icon="pi pi-times" (click)="displaySnowboardOptions=false" label="Zamknij" class="ui-button-secondary"></button>
+        </p-footer>
+</p-dialog>
+
+<p-dialog header="Ustawienia sprzętu" [(visible)]="displaySkisOptions" [modal]="true" [responsive]="true" [width]="350" [minWidth]="200" [minHeight]="80"
+        [maximizable]="true" [baseZIndex]="10000">
+        <span *ngIf="optionsSkis">
+            Ustawienia nart <br><br>
+            Waga: <strong>{{optionsSkis.Waga}}kg</strong><br>
+            Rozmiar buta: <strong>{{optionsSkis.Rozmiar}}</strong><br>
+          </span>
+        <p-footer>
+            <button type="button" pButton icon="pi pi-times" (click)="displaySkisOptions=false" label="Zamknij" class="ui-button-secondary"></button>
+        </p-footer>
+</p-dialog>
+
+<div class="container-fluid">
+<ng-container *ngIf="employeeView">
+  <h1>Rezerwacje</h1>
+  <h4>Sortuj według okresu</h4>
+  <div>
+      <p-selectButton (click)="getAllReservation()" [options]="periodList" [(ngModel)]="selectedPeriod"></p-selectButton>
+  </div>
+  <h4>Status rezerwacji</h4>
+  <div class="mb-2">
+      <p-selectButton (click)="getAllReservation()" [options]="statusList" [(ngModel)]="selectedStatus"></p-selectButton>
+  </div>
+
+  <div class="text-center mt-2 mb-4" *ngIf="!reservations">
+    <span class="alert alert-info">Brak rezerwacji</span>
+  </div>
+
+  <ng-container *ngIf="reservations">
+  <!--nowa tabela-->
+  <p-table #dt [columns]="cols" [value]="reservations" [paginator]="true" [rows]="10">
+    <ng-template pTemplate="header" let-columns>
+        <tr>
+          <ng-container *ngFor="let col of columns">
+            <th *ngIf="col.field != 'Sprzet'" [pSortableColumn]="col.field">
+                {{col.header}}
+                <p-sortIcon [field]="col.field" ariaLabel="Activate to sort" ariaLabelDesc="Activate to sort in descending order" ariaLabelAsc="Activate to sort in ascending order"></p-sortIcon>
+            </th>
+            <th *ngIf="col.field === 'Sprzet'">{{col.header}}</th>
+          </ng-container>
+          <th></th>
+
+        </tr>
+        <!--filter column-->
+        <tr>
+          <ng-container *ngFor="let col of columns">
+            <th [ngSwitch]="col.field">
+                <input id="inputModel" *ngSwitchCase="'DataOd'" pInputText type="text" (input)="dt.filter($event.target.value, col.field, col.filterMatchMode)">
+                <input id="inputModel" *ngSwitchCase="'Imie'" pInputText type="text" (input)="dt.filter($event.target.value, col.field, col.filterMatchMode)">
+                <input id="inputModel" *ngSwitchCase="'Nazwisko'" pInputText type="text" (input)="dt.filter($event.target.value, col.field, col.filterMatchMode)">
+                <p-dropdown *ngSwitchCase="'NazwaStatus'" [options]="selectStatus" [style]="{'width':'100%'}"  (onChange)="dt.filter($event.value, col.field, 'equals')"></p-dropdown>
+            </th>
+          </ng-container>
+          <th></th>
+
+        </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-rowData let-columns="columns">
+        <tr>
+          <ng-container *ngFor="let col of columns">
+            <td *ngIf="col.field != 'Sprzet' && col.field != 'Nazwisko' && col.field != 'DataOd'">
+                {{rowData[col.field]}}
+            </td>
+            <td *ngIf="col.field === 'DataOd'">
+                {{rowData[col.field] | date:'dd/MM/yyyy'}}
+            </td>
+            <td *ngIf="col.field === 'Nazwisko'">
+              {{rowData[col.field]}} {{rowData['Imie']}}
+          </td>
+            <td *ngIf="col.field === 'Sprzet' && rowData['IdSnowboard'] !== null">
+              Snowboard
+              <ng-container *ngFor="let item of snowboardList">
+                <ng-container *ngIf="item.IdSnowboard === rowData['IdSnowboard']">
+                  {{item.NazwaProducent}} {{item.Model}} {{item.Dlugosc}} {{item.NazwaPlec}} {{item.NazwaPrzeznaczenie}}
+                </ng-container>
+              </ng-container>
+          </td>
+          <td *ngIf="col.field === 'Sprzet' && rowData['IdNarty'] !== null">
+            Narty
+            <ng-container *ngFor="let item of skisList">
+              <ng-container *ngIf="item.IdNarty === rowData['IdNarty']">
+                {{item.NazwaProducent}} {{item.Model}} {{item.Dlugosc}} {{item.NazwaPlec}} {{item.NazwaPrzeznaczenie}}
+              </ng-container>
+            </ng-container>
+          </td>
+          <td *ngIf="col.field === 'Sprzet' && rowData['IdKijki'] !== null">
+            Kijki narciarskie
+            <ng-container *ngFor="let item of skiPolesList">
+              <ng-container *ngIf="item.IdKijki === rowData['IdKijki']">
+                {{item.NazwaProducent}} {{item.Model}} {{item.Dlugosc}} {{item.NazwaPlec}}
+              </ng-container>
+            </ng-container>
+          </td>
+          <td *ngIf="col.field === 'Sprzet' && rowData['IdButy'] !== null">
+            Buty
+            <ng-container *ngFor="let item of bootsList">
+              <ng-container *ngIf="item.IdButy === rowData['IdButy']">
+                {{item.NazwaProducent}} {{item.Model}} {{item.NazwaKategoria}} {{item.NazwaPlec}}
+              </ng-container>
+            </ng-container>
+          </td>
+          </ng-container>
+
+          <td>
+            <button *ngIf="rowData['IdStatus'] == 1" pButton type="button" (click)="changeStatus(rowData['Id'], rowData['IdStatus'])" class="ui-button-secondary" label="Gotowe"></button>
+            <button *ngIf="rowData['IdStatus'] == 2" pButton type="button" (click)="rent(rowData['Id'])" class="ui-button-success" label="Wypożycz"></button>
+            <button *ngIf="rowData['IdSnowboardOpcje'] != null" pButton type="button" (click)="snowboardOptions(rowData['Id'])" label="Opcje"></button>
+            <button *ngIf="rowData['IdNartyOpcje'] != null" pButton type="button" (click)="skisOptions(rowData['Id'])" label="Opcje"></button>
+            <button *ngIf="rowData['IdStatus'] != 4" pButton type="button" icon="pi pi-times" (click)="cancelDialogReservation(rowData['Id'], rowData['IdKlient'])" label="Anuluj" class="ui-button-danger"></button>
+          </td>
+        </tr>
+    </ng-template>
+</p-table>
+<!--koniec tabeli nowej-->
+</ng-container>
+
+<!--
+  <button pButton type="button" (click)="redirectToRenting()" class="ui-button-secondary" label="Przejdź do wypożyczenia"></button>
+  <table class="table">
+    <thead class="thead-light">
+    <tr>
+        <th>Data od</th>
+        <th>Data do</th>
+        <th>Imie</th>
+        <th>Nazwisko</th>
+        <th>Sprzet</th>
+        <th>Status</th>
+        <th></th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+
+    <tr *ngFor="let item of reservations">
+        <td>{{item.DataOd}}</td>
+        <td>{{item.DataDo}}</td>
+        <td>{{item.Imie}}</td>
+        <td>{{item.Nazwisko}}</td>
+        <td *ngIf="item.IdNarty">Narty, id:{{item.IdNarty}}</td>
+        <td *ngIf="item.IdSnowboard">Snowboard, id:{{item.IdSnowboard}}</td>
+        <td *ngIf="item.IdKijki">Kijki, id:{{item.IdKijki}}</td>
+        <td *ngIf="item.IdButy">Buty, id:{{item.IdButy}}</td>
+        <td>
+            <button pButton type="button" (click)="changeStatus(item.Id, item.IdStatus)" class="ui-button-secondary" label={{item.NazwaStatus}}></button>
+        </td>
+        <td>
+          <button pButton type="button" (click)="cancelDialogReservation(item.Id, item.IdKlient)" label="Anuluj" class="ui-button-secondary"></button>
+          -->
+          <!--<button pButton type="button" (click)="rent(item.Id)" class="ui-button-secondary" label="Wypożycz"></button>
+        </td>
+        <td>
+          <ng-container *ngIf="possibleMultipleRent.length === 0 || possibleMultipleRent.includes(item.Id)">
+          <input *ngIf="!rentEquipment.includes(item.Id)" type="checkbox" (click)="rent(item.Id, true)"/>
+          <input *ngIf="rentEquipment.includes(item.Id)" type="checkbox" (click)="rent(item.Id, false)" checked/>
+        </ng-container>
+      </td>
+    </tr>
+    </tbody>
+</table>-->
+</ng-container>
+</div>
+
+<div>
+    <p-dialog header="Dodaj sprzęt do rezerwacji" [(visible)]="displayDialogAddEquipment" [modal]="true" [responsive]="true" [width]="700" [minWidth]="400" [minHeight]="80"
+    [maximizable]="true" [baseZIndex]="10000">
+    <strong>Wybierz typ sprzętu</strong><br>
+    <div class="container">
+        <div class="row">
+          <div *ngIf="!snowboard && !skis" class="col-sm">
+              <p-radioButton value="snowboard" label="Snowboard" [(ngModel)]="selectedEquipmentType"></p-radioButton>
+          </div>
+          <div *ngIf="!snowboard && !skis" class="col-sm">
+              <p-radioButton value="skis" label="Narty" [(ngModel)]="selectedEquipmentType"></p-radioButton>
+          </div>
+          <div *ngIf="!skiPoles" class="col-sm">
+              <p-radioButton value="skiPoles" label="Kijki" [(ngModel)]="selectedEquipmentType"></p-radioButton>
+          </div>
+          <div *ngIf="!boots" class="col-sm">
+              <p-radioButton value="boots" label="Buty" [(ngModel)]="selectedEquipmentType"></p-radioButton>
+          </div>
+        </div>
+        <div *ngIf="selectedEquipmentType === 'snowboard'"><br>
+          <strong>Wybierz model sprzętu</strong><br>
+            <select [formControl]="snowboardFormControl" class="form-control">
+                <option *ngFor="let item of snowboardList" [value]="item.IdSnowboard">{{item.NazwaProducent}} {{item.Model}} {{item.NazwaPlec}} {{item.Dlugosc}} {{item.NazwaPrzeznaczenie}}</option>
+              </select>
+        </div>
+        <div *ngIf="selectedEquipmentType === 'skis'"><br>
+          <strong>Wybierz model sprzętu</strong><br>
+            <select [formControl]="skisFormControl" class="form-control">
+                <option *ngFor="let item of skisList" [value]="item.IdNarty">{{item.NazwaProducent}} {{item.Model}} {{item.NazwaPlec}} {{item.Dlugosc}} {{item.NazwaPrzeznaczenie}}</option>
+              </select>
+        </div>
+        <div *ngIf="selectedEquipmentType === 'skiPoles'"><br>
+          <strong>Wybierz model sprzętu</strong><br>
+            <select [formControl]="skiPolesFormControl" class="form-control">
+                <option *ngFor="let item of skiPolesList" [value]="item.IdKijki">{{item.NazwaProducent}} {{item.Model}} {{item.NazwaPlec}} {{item.Dlugosc}}</option>
+              </select>
+        </div>
+        <div *ngIf="selectedEquipmentType === 'boots'"><br>
+          <strong>Wybierz model sprzętu</strong><br>
+            <select [formControl]="bootsFormControl" class="form-control">
+                <option *ngFor="let item of bootsList" [value]="item.IdButy">{{item.NazwaProducent}} {{item.Model}} {{item.NazwaPlec}} {{item.NazwaKategoria}} {{item.Rozmiar}}</option>
+              </select>
+        </div>
+
+      </div>
+    <div>
+
+    </div>
+    <p-footer>
+        <button type="button" pButton icon="pi pi-check" (click)="addEquipmentToReservation()" label="Dodaj"></button>
+        <button type="button" pButton icon="pi pi-times" (click)="displayDialogAddEquipment=false" label="Zamknij" class="ui-button-secondary"></button>
+    </p-footer>
+</p-dialog>
+
+<div class="container-fluid">
+  <ng-container *ngIf="!snowboard && !skis && !skiPoles && !boots && !employeeView">
+    <h1 class="mt-2 mb-2">Rezerwacja sprzętu</h1>
+    <div class="text-center"><span class="alert alert-info">Nie masz wybranych sprzętów do rezerwacji.</span></div>
+    <div class="text-center d-block mt-4">
+      <button (click)="showAddEquipmentDialog()" icon="pi pi-plus" pButton type="button" label="Dodaj sprzęt do rezerwacji" class="ui-button-success"></button>
+    </div>
+  </ng-container>
+
+
+  <!--prezentacja informacji swrotnej-->
+  <div *ngIf="errorReservation" class="alert alert-warning" role="alert">
+      <h4>Nie udało się dokonać rezerwacji</h4><br>
+      <ng-container *ngIf="messageSnowboardError === true">Snowboard niedostępny w wybranym terminie<br></ng-container>
+      <ng-container *ngIf="messageSnowboardError === false">Snowboard dostępny<br></ng-container>
+      <ng-container *ngIf="messageSkisError === true">Narty niedostępne w wybranym terminie<br></ng-container>
+      <ng-container *ngIf="messageSkisError === false">Narty dostępne<br></ng-container>
+      <ng-container *ngIf="messageSkiPolesError === true">Kijki niedostępne w wybranym terminie<br></ng-container>
+      <ng-container *ngIf="messageSkiPolesError === false">Kijki dostępne<br></ng-container>
+      <ng-container *ngIf="messageBootsError === true">Buty niedostępne w wybranym terminie<br></ng-container>
+      <ng-container *ngIf="messageBootsError === false">Buty dostępne<br></ng-container>
+      <p-accordion>
+        <p-accordionTab *ngIf="messageSnowboardError === true" header="Snowboard informacje dotyczące terminów">
+          <div class="form-row">
+            <div *ngIf="occupiedDatesArraySnowboard.length > 0" class="form-group col-md-6">
+              Zajęte terminy
+              <ul>
+                <li *ngFor="let item of occupiedDatesArraySnowboard">{{item.DataOd | date:'dd/MM/yyyy'}} - {{item.DataDo | date:'dd/MM/yyyy'}}</li>
+              </ul>
+            </div>
+            <div *ngIf="availableDatesArraySnowboard.length > 0" class="form-group col-md-6">
+              Proponowane terminy
+                <ul >
+                  <li *ngFor="let item of availableDatesArraySnowboard">{{item.DataOd | date:'dd/MM/yyyy'}} - {{item.DataDo | date:'dd/MM/yyyy'}}</li>
+                </ul>
+            </div>
+          </div>
+        </p-accordionTab>
+
+        <p-accordionTab *ngIf="messageSkisError === true" header="Narty informacje dotyczące terminów">
+            <div class="form-row">
+                <div *ngIf="occupiedDatesArraySkis.length > 0" class="form-group col-md-6">
+                  Zajęte terminy
+                  <ul>
+                    <li *ngFor="let item of occupiedDatesArraySkis">{{item.DataOd | date:'dd/MM/yyyy'}} - {{item.DataDo | date:'dd/MM/yyyy'}}</li>
+                  </ul>
+                </div>
+                <div *ngIf="availableDatesArraySkis.length > 0" class="form-group col-md-6">
+                  Proponowane terminy
+                    <ul >
+                      <li *ngFor="let item of availableDatesArraySkis">{{item.DataOd | date:'dd/MM/yyyy'}} - {{item.DataDo | date:'dd/MM/yyyy'}}</li>
+                    </ul>
+                </div>
+              </div>
+        </p-accordionTab>
+
+        <p-accordionTab *ngIf="messageSkiPolesError === true" header="Kijki narciarskie informacje dotyczące terminów">
+            <div class="form-row">
+                <div *ngIf="occupiedDatesArraySkiPoles.length > 0" class="form-group col-md-6">
+                  Zajęte terminy
+                  <ul>
+                    <li *ngFor="let item of occupiedDatesArraySkiPoles">{{item.DataOd | date:'dd/MM/yyyy'}} - {{item.DataDo | date:'dd/MM/yyyy'}}</li>
+                  </ul>
+                </div>
+                <div *ngIf="availableDatesArraySkiPoles.length > 0" class="form-group col-md-6">
+                  Proponowane terminy
+                    <ul >
+                      <li *ngFor="let item of availableDatesArraySkiPoles">{{item.DataOd | date:'dd/MM/yyyy'}} - {{item.DataDo | date:'dd/MM/yyyy'}}</li>
+                    </ul>
+                </div>
+              </div>
+        </p-accordionTab>
+
+        <p-accordionTab *ngIf="messageBootsError === true" header="Buty informacje dotyczące terminów">
+            <div class="form-row">
+                <div *ngIf="occupiedDatesArrayBoots.length > 0" class="form-group col-md-6">
+                  Zajęte terminy
+                  <ul>
+                    <li *ngFor="let item of occupiedDatesArrayBoots">{{item.DataOd | date:'dd/MM/yyyy'}} - {{item.DataDo | date:'dd/MM/yyyy'}}</li>
+                  </ul>
+                </div>
+                <div *ngIf="availableDatesArrayBoots.length > 0" class="form-group col-md-6">
+                  Proponowane terminy
+                    <ul >
+                      <li *ngFor="let item of availableDatesArrayBoots">{{item.DataOd | date:'dd/MM/yyyy'}} - {{item.DataDo | date:'dd/MM/yyyy'}}</li>
+                    </ul>
+                </div>
+              </div>
+        </p-accordionTab>
+    </p-accordion>
+
+    </div>
+
+
+  <ng-container *ngIf="!employeeView && (snowboard || skis || skiPoles || boots)">
+      <h1>Rezerwacja sprzętu</h1>
+      <table class="table">
+          <thead class="thead-dark">
+            <tr >
+              <th id="typ" scope="col">Typ sprzętu</th>
+              <th id="info" scope="col">Informacje sprzętu</th>
+              <th id="usun" scope="col"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="snowboard">
+              <th>Deska snowboardowa</th>
+              <td>
+                  Model: {{snowboard.Model}},
+                  Producent: {{snowboard.NazwaProducent}},
+                  Długość[cm]: {{snowboard.Dlugosc}},
+                  Typ: {{snowboard.NazwaPrzeznaczenie}},
+                  Płeć użytkownika: {{snowboard.NazwaPlec}}
+              </td>
+              <td>
+                  <button (click)="deleteSnowboard()" icon="pi pi-times" pButton type="button" label="Usuń" class="ui-button-danger"></button>
+              </td>
+            </tr>
+            <tr *ngIf="skis">
+              <th>Narty</th>
+              <td>
+                  Model: {{skis.Model}},
+                  Producent: {{skis.NazwaProducent}},
+                  Długość[cm]: {{skis.Dlugosc}},
+                  Typ: {{skis.NazwaPrzeznaczenie}},
+                  Płeć użytkownika: {{skis.NazwaPlec}}
+              </td>
+              <td>
+                  <button (click)="deleteSkis()" icon="pi pi-times" pButton type="button" label="Usuń" class="ui-button-danger"></button>
+              </td>
+            </tr>
+            <tr *ngIf="skiPoles">
+                <th>Kijki narciarskie</th>
+                <td>
+                    Model: {{skiPoles.Model}},
+                    Producent: {{skiPoles.NazwaProducent}},
+                    Długosc: {{skiPoles.Dlugosc}},
+                    Plec: {{skiPoles.NazwaPlec}}
+                </td>
+                <td>
+                    <button (click)="deleteSkiPoles()" icon="pi pi-times" pButton type="button" label="Usuń" class="ui-button-danger"></button>
+                </td>
+              </tr>
+              <tr *ngIf="boots">
+                  <th>Buty</th>
+                  <td>
+                      Model: {{boots.Model}},
+                      Producent: {{boots.NazwaProducent}},
+                      Rozmiar: {{boots.Rozmiar}},
+                      Kategoria: {{boots.NazwaKategoria}},
+                      Plec: {{boots.NazwaPlec}}
+                  </td>
+                  <td>
+                      <button (click)="deleteBoots()" icon="pi pi-times" pButton type="button" label="Usuń" class="ui-button-danger"></button>
+                  </td>
+                </tr>
+          </tbody>
+        </table>
+
+          <button (click)="showAddEquipmentDialog()" icon="pi pi-plus" pButton type="button" label="Dodaj sprzęt do rezerwacji" class="ui-button-success"></button>
+
+        <!--Dodatkowe opcje snowboard/narty-->
+        <br><br>
+        <ng-container *ngIf="snowboard">
+        <h4>Ustawienia deski snowboardowej</h4>
+        <form [formGroup] = "snowboardOptionsForm">
+            <div class="form-row">
+              <div class="form-group col-md-4">
+                <label for="ustawienie">Ustawienie (dominująca noga)</label>
+                <select formControlName="ustawienie" class="form-control" id="ustawienie">
+                    <option *ngFor="let item of snowboardLeg" [value]="item.Id">{{item.NazwaUstawienie}}</option>
+                </select>
+              </div>
+              <div class="form-group col-md-4">
+                <label for="katL">Kąt(lewe wiązanie)</label>
+                <input formControlName="katL" type="text" class="form-control" id="katL" required>
+                <div class="alert alert-danger" role="alert" *ngIf="formErrorsSnowboardOptions.katL">
+                    {{formErrorsSnowboardOptions.katL}}
+                  </div>
+              </div>
+              <div class="form-group col-md-4">
+                  <label for="katP">Kąt(prawe wiązanie)</label>
+                  <input formControlName="katP" type="text" class="form-control" id="katP" required>
+                  <div class="alert alert-danger" role="alert" *ngIf="formErrorsSnowboardOptions.katP">
+                      {{formErrorsSnowboardOptions.katP}}
+                    </div>
+                </div>
+            </div>
+          </form>
+        </ng-container>
+
+        <ng-container *ngIf="skis">
+            <h4>Ustawienia nart</h4>
+            <form [formGroup] = "skisOptionsForm">
+                <div class="form-row">
+                  <div class="form-group col-md-6">
+                    <label for="waga">Waga(kg)</label>
+                    <input formControlName="waga" type="text" class="form-control" id="waga" placeholder="Waga" required>
+                    <div class="alert alert-danger" role="alert" *ngIf="formErrorsSkisOptions.waga">
+                        {{formErrorsSkisOptions.waga}}
+                      </div>
+                  </div>
+                  <div class="form-group col-md-6">
+                    <label for="rozmiarButa">Rozmiar buta</label>
+                    <input formControlName="rozmiarButa" type="text" class="form-control" id="rozmiarButa" placeholder="Rozmiar buta" required>
+                    <div class="alert alert-danger" role="alert" *ngIf="formErrorsSkisOptions.rozmiarButa">
+                        {{formErrorsSkisOptions.rozmiarButa}}
+                      </div>
+                  </div>
+                </div>
+              </form>
+            </ng-container>
+
+            <!--dane klienta-->
+
+            <h4>Dane osobowe</h4>
+        <form [formGroup] = "customerForm">
+            <div class="form-row">
+              <div class="form-group col-md-3">
+                <label for="imie">Imię</label>
+                <input formControlName="imie" type="text" class="form-control" id="imie"  placeholder="Imie" required>
+                <div class="alert alert-danger" role="alert" *ngIf="formErrorsCustomer.imie">
+                  {{formErrorsCustomer.imie}}
+                </div>
+              </div>
+              <div class="form-group col-md-3">
+                <label for="nazwisko">Nazwisko</label>
+                <input formControlName="nazwisko" type="text" class="form-control" id="nazwisko" placeholder="Nazwisko" required>
+                <div class="alert alert-danger" role="alert" *ngIf="formErrorsCustomer.nazwisko">
+                  {{formErrorsCustomer.nazwisko}}
+                </div>
+              </div>
+              <div class="form-group col-md-3">
+                  <label for="telefon">Telefon</label>
+                  <input formControlName="telefon" type="text" class="form-control" id="telefon" placeholder="Numer telefonu" required>
+                  <div class="alert alert-danger" role="alert" *ngIf="formErrorsCustomer.telefon">
+                    {{formErrorsCustomer.telefon}}
+                  </div>
+                </div>
+                <div class="form-group col-md-3">
+                  <label for="email">Adres email</label>
+                  <input formControlName="email" type="text" class="form-control" id="email"  placeholder="E-mail" required>
+                  <div class="alert alert-danger" role="alert" *ngIf="formErrorsCustomer.email">
+                    {{formErrorsCustomer.email}}
+                  </div>
+                </div>
+            </div>
+          </form>
+
+          <!--finalizacja rezerwacji-->
+          <h4>Okres wypożyczenia sprzętu</h4>
+          <form [formGroup] = "reservationForm" (ngSubmit)="reserve()">
+              <div class="form-row">
+                <div class="form-group col-md-3">
+                  <label for="dataOd">Początek okresu wypożyczenia</label><br>
+                  <p-calendar formControlName="dataOd" id="dataOd" name="dataOd" [minDate]="minDateValue" [locale]="pl"></p-calendar>
+                </div>
+                <div class="form-group col-md-3">
+                  <label for="dataDo">Koniec okresu wypożyczenia</label><br>
+                  <p-calendar formControlName="dataDo" id="dataDo" name="dataDo" [minDate]="minDateValue" [locale]="pl"></p-calendar>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group col-md-3">
+                  <re-captcha formControlName="recaptcha" siteKey="6LcOuyYTAAAAAHTjFuqhA52fmfJ_j5iFk5PsfXaU"></re-captcha>
+                </div>
+              </div>
+                <div class="form-group col-md-3 pl-0 ml-0">
+                  <button [disabled]="reservationForm.invalid || customerForm.invalid" class="btn btn-primary" type="submit">Zarezerwuj</button>
+
+              </div>
+            </form>
+  </ng-container>
+</div>
+</div>

@@ -1,0 +1,67 @@
+<p-toast position="top-right"></p-toast>
+<p-dialog header="Usuń producenta" [(visible)]="displayDialogDelete" [modal]="true" [responsive]="true" [width]="350" [minWidth]="200" [minHeight]="80"
+        [maximizable]="true" [baseZIndex]="10000">
+    <span>
+      Czy na pewno chcesz usunąć producenta <strong>{{idProducerToDelete}}</strong>?
+    </span>
+        <p-footer>
+            <button type="button" pButton icon="pi pi-check" (click)="deleteProducer(idProducerToDelete)" label="Yes"></button>
+            <button type="button" pButton icon="pi pi-times" (click)="displayDialogDelete=false" label="No" class="ui-button-secondary"></button>
+        </p-footer>
+</p-dialog>
+<ng-container *ngIf="adminPanelView.isForm === false">
+<div class="container">
+  <h1 class="mt-2 mb-2">Lista producentów sprzętu</h1>
+    <p-table #dt [columns]="cols" [value]="producer" [paginator]="true" [rows]="10">
+        <ng-template pTemplate="header" let-columns>
+            <tr>
+              <ng-container *ngFor="let col of columns">
+                <th [pSortableColumn]="col.field">
+                    {{col.header}}
+                    <p-sortIcon [field]="col.field" ariaLabel="Activate to sort" ariaLabelDesc="Activate to sort in descending order" ariaLabelAsc="Activate to sort in ascending order"></p-sortIcon>
+                </th>
+                <th></th>
+              </ng-container>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-rowData let-columns="columns">
+            <tr>
+              <ng-container *ngFor="let col of columns">
+                <td>
+                    {{rowData[col.field]}}
+                </td>
+                <td>
+                    <button (click)="editProducer(rowData['Id'])" icon="pi pi-pencil" pButton type="button" label="Edycja"></button>
+                    <button (click)="showDialogDelete(rowData['Id'])" icon="pi pi-times" pButton type="button" label="Usuń" class="ui-button-danger"></button>
+                 </td>
+              </ng-container>
+            </tr>
+        </ng-template>
+    </p-table>
+</div>
+</ng-container>
+
+    <ng-container *ngIf="adminPanelView.isForm">
+  <h1 *ngIf="isEditMode">Edycja danych - producent</h1>
+  <h1 *ngIf="!isEditMode">Dodanie - producent</h1>
+
+          <form [formGroup] = "producerForm" (ngSubmit)="addProducer()">
+              <div class="form-group row">
+                  <label for="nazwa" class="col-sm-2 col-form-label">Nazwa</label>
+                  <div class="col-sm-6">
+                      <input formControlName="nazwa" type="text" class="form-control" id="nazwa" name="nazwa"  placeholder="Nazwa producenta" required>
+                      <div class="alert alert-danger" role="alert" *ngIf="formErrors.nazwa">
+                        {{formErrors.nazwa}}
+                      </div>
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                  <label class="col-sm-2 col-form-label"></label>
+                  <div class="col-sm-6">
+                    <button *ngIf="!isEditMode" [disabled]="producerForm.invalid" class="btn btn-primary" type="submit">Dodaj</button>
+                    <button *ngIf="isEditMode" [disabled]="producerForm.invalid" class="btn btn-primary" type="submit">Zapisz zmiany</button>
+                  </div>
+                </div>
+          </form>
+        </ng-container>

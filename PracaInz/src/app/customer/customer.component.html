@@ -1,0 +1,105 @@
+<p-toast position="top-right"></p-toast>
+<p-dialog header="Usuń klienta" [(visible)]="displayDialogDelete" [modal]="true" [responsive]="true" [width]="350" [minWidth]="200" [minHeight]="80"
+        [maximizable]="true" [baseZIndex]="10000">
+    <span>
+      Czy na pewno chcesz usunąć klienta <strong>{{idCustomerToDelete}}</strong>?
+    </span>
+        <p-footer>
+            <button type="button" pButton icon="pi pi-check" (click)="deleteCustomer(idCustomerToDelete)" label="Yes"></button>
+            <button type="button" pButton icon="pi pi-times" (click)="displayDialogDelete=false" label="No" class="ui-button-secondary"></button>
+        </p-footer>
+</p-dialog>
+<ng-container *ngIf="adminPanelView.isForm === false">
+
+    <h1 class="mt-2 mb-2">Lista klientów</h1>
+    <p-table #dt [columns]="cols" [value]="customer" [paginator]="true" [rows]="10">
+        <ng-template pTemplate="header" let-columns>
+            <tr>
+              <ng-container *ngFor="let col of columns">
+                <th [pSortableColumn]="col.field">
+                    {{col.header}}
+                    <p-sortIcon [field]="col.field" ariaLabel="Activate to sort" ariaLabelDesc="Activate to sort in descending order" ariaLabelAsc="Activate to sort in ascending order"></p-sortIcon>
+                </th>
+              </ng-container>
+              <th></th>
+            </tr>
+            <tr>
+                <ng-container *ngFor="let col of columns">
+                  <th [ngSwitch]="col.field">
+                      <input id="inputModel" *ngSwitchCase="'Imie'" pInputText type="text" (input)="dt.filter($event.target.value, col.field, col.filterMatchMode)">
+                      <input id="inputModel" *ngSwitchCase="'Nazwisko'" pInputText type="text" (input)="dt.filter($event.target.value, col.field, col.filterMatchMode)">
+                      <input id="inputModel" *ngSwitchCase="'Telefon'" pInputText type="text" (input)="dt.filter($event.target.value, col.field, col.filterMatchMode)">
+                      <input id="inputModel" *ngSwitchCase="'Email'" pInputText type="text" (input)="dt.filter($event.target.value, col.field, col.filterMatchMode)">
+                  </th>
+                </ng-container>
+                <th></th>
+              </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-rowData let-columns="columns">
+            <tr>
+              <ng-container *ngFor="let col of columns">
+                <td>
+                    {{rowData[col.field]}}
+                </td>
+              </ng-container>
+              <td>
+                  <button *ngIf="!isAdmin" (click)="editCustomer(rowData['Id'])" icon="pi pi-pencil" pButton type="button" label="Edycja"></button>
+                  <button *ngIf="isAdmin" (click)="showDialogDelete(rowData['Id'])" icon="pi pi-times" pButton type="button" label="Usuń" class="ui-button-danger"></button>
+               </td>
+            </tr>
+        </ng-template>
+    </p-table>
+  </ng-container>
+
+  <ng-container *ngIf="adminPanelView.isForm">
+      <h1 *ngIf="isEditMode">Edycja danych klienta</h1>
+      <h1 *ngIf="!isEditMode">Dodanie danych klienta</h1>
+      <form [formGroup] = "customerForm" (ngSubmit)="addCustomer()">
+          <div class="form-group row">
+              <label for="imie" class="col-sm-2 col-form-label">Imie</label>
+              <div class="col-sm-6">
+                  <input formControlName="imie" type="text" class="form-control" id="imie" name="imie"  placeholder="Imie" required>
+                  <div class="alert alert-danger" role="alert" *ngIf="formErrors.imie">
+                    {{formErrors.imie}}
+                  </div>
+                </div>
+            </div>
+
+            <div class="form-group row">
+              <label for="nazwisko" class="col-sm-2 col-form-label">Nazwisko</label>
+              <div class="col-sm-6">
+                  <input formControlName="nazwisko" type="text" class="form-control" id="nazwisko" name="nazwisko"  placeholder="Nazwisko" required>
+                  <div class="alert alert-danger" role="alert" *ngIf="formErrors.nazwisko">
+                    {{formErrors.nazwisko}}
+                  </div>
+                </div>
+            </div>
+
+            <div class="form-group row">
+              <label for="telefon" class="col-sm-2 col-form-label">Telefon</label>
+              <div class="col-sm-6">
+                <input formControlName="telefon" type="text" class="form-control" id="telefon" name="telefon"  placeholder="Numer telefonu" required>
+                <div class="alert alert-danger" role="alert" *ngIf="formErrors.telefon">
+                  {{formErrors.telefon}}
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group row">
+              <label for="email" class="col-sm-2 col-form-label">E-mail</label>
+              <div class="col-sm-6">
+                  <input formControlName="email" type="text" class="form-control" id="email" name="email"  placeholder="E-mail" required>
+                  <div class="alert alert-danger" role="alert" *ngIf="formErrors.email">
+                    {{formErrors.email}}
+                  </div>
+                </div>
+            </div>
+            <div class="form-group row">
+              <label class="col-sm-2 col-form-label"></label>
+              <div class="col-sm-6">
+                <button *ngIf="!isEditMode" [disabled]="customerForm.invalid" class="btn btn-primary" type="submit">Dodaj</button>
+                <button *ngIf="isEditMode" [disabled]="customerForm.invalid" class="btn btn-primary" type="submit">Zapisz zmiany</button>
+              </div>
+            </div>
+      </form>
+    </ng-container>

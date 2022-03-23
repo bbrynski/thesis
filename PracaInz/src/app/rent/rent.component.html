@@ -1,0 +1,330 @@
+<p-toast position="top-right"></p-toast>
+<p-dialog header="Potwierdź zwrot sprzętu" [(visible)]="displayReturnDialog" [modal]="true" [responsive]="true" [width]="500" [minWidth]="500" [minHeight]="100"
+        [maximizable]="true" [baseZIndex]="10000">
+
+        <div class="text-center">
+            <span >
+                Przekroczono datę planowanego zwrotu sprzętu.<br> Planowana data zwrotu: <strong>{{returnDate}}</strong>.<br> Czy dokonać zwrotu?
+              </span>
+        </div>
+
+
+
+        <p-footer>
+            <button type="button" pButton icon="pi pi-check" (click)="returnEquipment(idEquipmentCopy, idRentCopy, true)" label="Tak"></button>
+            <button type="button" pButton icon="pi pi-times" (click)="displayReturnDialog=false" label="Nie" class="ui-button-secondary"></button>
+        </p-footer>
+</p-dialog>
+
+<ng-container *ngIf="!formView">
+<div class="container-fluid">
+<h1>Wypożyczenia</h1>
+<h4>Status wypożyczeń</h4>
+  <div class="mb-2">
+      <p-selectButton (click)="getAllRentals()" [options]="statusList" [(ngModel)]="selectedStatus"></p-selectButton>
+  </div>
+
+   <!--nowa tabela-->
+   <p-table #dt [columns]="cols" [value]="rentals" [paginator]="true" [rows]="10">
+    <ng-template pTemplate="header" let-columns>
+        <tr>
+          <ng-container *ngFor="let col of columns">
+            <th *ngIf="col.field != 'Sprzet' && col.field != 'NazwaStatus'" [pSortableColumn]="col.field">
+                {{col.header}}
+                <p-sortIcon [field]="col.field" ariaLabel="Activate to sort" ariaLabelDesc="Activate to sort in descending order" ariaLabelAsc="Activate to sort in ascending order"></p-sortIcon>
+            </th>
+            <th *ngIf="col.field === 'Sprzet' || col.field === 'NazwaStatus'">{{col.header}}</th>
+          </ng-container>
+          <th *ngIf="selectedStatus == 'active'"></th>
+        </tr>
+        <!--filter column-->
+        <tr>
+          <ng-container *ngFor="let col of columns">
+            <th [ngSwitch]="col.field">
+                <input id="inputModel" *ngSwitchCase="'DataOd'" pInputText type="text" (input)="dt.filter($event.target.value, col.field, col.filterMatchMode)">
+                <input id="inputModel" *ngSwitchCase="'DataDo'" pInputText type="text" (input)="dt.filter($event.target.value, col.field, col.filterMatchMode)">
+                <input id="inputModel" *ngSwitchCase="'DataZwrot'" pInputText type="text" (input)="dt.filter($event.target.value, col.field, col.filterMatchMode)">
+                <input id="inputModel" *ngSwitchCase="'Nazwisko'" pInputText type="text" (input)="dt.filter($event.target.value, col.field, col.filterMatchMode)">
+            </th>
+          </ng-container>
+          <th *ngIf="selectedStatus == 'active'"></th>
+        </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-rowData let-columns="columns">
+        <tr>
+          <ng-container *ngFor="let col of columns">
+            <td *ngIf="col.field != 'Sprzet' && col.field != 'Nazwisko'">
+                {{rowData[col.field]}}
+            </td>
+            <td *ngIf="col.field === 'Nazwisko'">
+              {{rowData[col.field]}} {{rowData['Imie']}}
+          </td>
+            <td *ngIf="col.field === 'Sprzet' && rowData['IdSnowboard'] !== null">
+              Snowboard
+              <ng-container *ngFor="let item of snowboardList">
+                <ng-container *ngIf="item.IdSnowboard === rowData['IdSnowboard']">
+                  {{item.NazwaProducent}} {{item.Model}} {{item.Dlugosc}} {{item.NazwaPlec}} {{item.NazwaPrzeznaczenie}}
+                </ng-container>
+              </ng-container>
+          </td>
+          <td *ngIf="col.field === 'Sprzet' && rowData['IdNarty'] !== null">
+            Narty
+            <ng-container *ngFor="let item of skisList">
+              <ng-container *ngIf="item.IdNarty === rowData['IdNarty']">
+                {{item.NazwaProducent}} {{item.Model}} {{item.Dlugosc}} {{item.NazwaPlec}} {{item.NazwaPrzeznaczenie}}
+              </ng-container>
+            </ng-container>
+          </td>
+          <td *ngIf="col.field === 'Sprzet' && rowData['IdKijki'] !== null">
+            Kijki narciarskie
+            <ng-container *ngFor="let item of skiPolesList">
+              <ng-container *ngIf="item.IdKijki === rowData['IdKijki']">
+                {{item.NazwaProducent}} {{item.Model}} {{item.Dlugosc}} {{item.NazwaPlec}}
+              </ng-container>
+            </ng-container>
+          </td>
+          <td *ngIf="col.field === 'Sprzet' && rowData['IdButy'] !== null">
+            Buty
+            <ng-container *ngFor="let item of bootsList">
+              <ng-container *ngIf="item.IdButy === rowData['IdButy']">
+                {{item.NazwaProducent}} {{item.Model}} {{item.NazwaKategoria}} {{item.NazwaPlec}}
+              </ng-container>
+            </ng-container>
+          </td>
+          </ng-container>
+          <td *ngIf="selectedStatus === 'active'">
+              <button pButton type="button" (click)="returnEquipment(rowData['IdSprzet'], rowData['Id'], false)" label="Zwróc"></button>
+          </td>
+        </tr>
+    </ng-template>
+</p-table>
+<!--koniec tabeli nowej-->
+</div>
+</ng-container>
+<ng-container *ngIf="formView">
+<div class="container">
+<h1>Formularz wypożyczeń</h1>
+<form [formGroup] = "rentForm" (ngSubmit)="addRent()">
+  <div class="form-row">
+    <div class="form-group col-md-6">
+      <label for="sprzet">Sprzęt</label>
+      <ng-container *ngIf="snowboard">
+        <input disabled=disabled type="text" class="form-control" name="sprzet"
+          value="Snowboard {{snowboard.NazwaProducent}} {{snowboard.Model}} {{snowboard.Dlugosc}} {{snowboard.NazwaPrzeznaczenie}} {{snowboard.NazwaPlec}}">
+      </ng-container>
+
+      <ng-container *ngIf="skis">
+          <input disabled=disabled type="text" class="form-control" name="sprzet"
+            value="Narty {{skis.NazwaProducent}} {{skis.Model}} {{skis.Dlugosc}} {{skis.NazwaPrzeznaczenie}} {{skis.NazwaPlec}}">
+      </ng-container>
+
+        <ng-container *ngIf="skiPoles">
+            <input disabled=disabled type="text" class="form-control" name="sprzet"
+              value="Kijki {{skiPoles.NazwaProducent}} {{skiPoles.Model}} {{skiPoles.Dlugosc}} {{skiPoles.NazwaPlec}}">
+        </ng-container>
+        <ng-container *ngIf="boots">
+            <input disabled=disabled type="text" class="form-control" name="sprzet"
+              value="Buty {{boots.NazwaProducent}} {{boots.Model}} {{boots.Rozmiar}} {{boots.NazwaKategoria}} {{boots.NazwaPlec}}">
+        </ng-container>
+    </div>
+    <div class="form-group col-md-6">
+        <label for="cena">Cena</label>
+            <input formControlName="cena" type="text" class="form-control" id="cena" name="cena" required>
+        <div class="alert alert-danger" role="alert" *ngIf="formErrors.cena">
+          {{formErrors.cena}}
+        </div>
+    </div>
+  </div>
+    <div class="form-row">
+        <div class="form-group col-md-6">
+            <label for="klient">Klient</label>
+            <input formControlName="klient" class="form-control" placeholder="Klient" id="klient" name="klient" [matAutocomplete]="auto">
+            <mat-autocomplete #auto="matAutocomplete">
+              <mat-option *ngFor="let customer of filteredCustomers | async" [value]="customer.Imie +' '+customer.Nazwisko" (click)="update(customer.Id)">
+                <span>{{customer.Nazwisko}} {{customer.Imie}}</span> |
+                <small>Telefon: {{customer.Telefon}}</small>
+              </mat-option>
+            </mat-autocomplete>
+            <div class="alert alert-danger" role="alert" *ngIf="formErrors.klient">
+              {{formErrors.klient}}
+            </div>
+        </div>
+        <div class="form-group col-md-6">
+            <label for="pracownik">Pracownik</label>
+            <input formControlName="pracownik" type="text" class="form-control" id="pracownik" name="pracownik">
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="form-group col-md-6">
+            <label for="dataOd">Początek okresu wypożyczenia</label><br>
+            <p-calendar formControlName="dataOd" name="dataOd" [locale]="pl"></p-calendar>
+            <div class="alert alert-danger" role="alert" *ngIf="formErrors.dataOd">
+              {{formErrors.dataOd}}
+            </div>
+        </div>
+        <div class="form-group col-md-6">
+            <label for="dataDo">Koniec okresu wypożyczenia</label><br>
+            <p-calendar formControlName="dataDo" name="dataDo" [locale]="pl"></p-calendar>
+            <div class="alert alert-danger" role="alert" *ngIf="formErrors.dataDo">
+              {{formErrors.dataDo}}
+            </div>
+        </div>
+    </div>
+    <div>
+        <button pButton type="button" class="ui-button-success" type="submit" label="Wypożycz"></button>
+    </div>
+  </form>
+  </div>
+</ng-container>
+
+
+
+
+
+ <!--
+<mat-tab-group mat-align-tabs="center" selectedIndex={{activeTab}} >
+  <mat-tab label="Lista">
+
+      <table class="table">
+          <thead class="thead-light">
+          <tr>
+              <th>Data od</th>
+              <th>Data do</th>
+              <th>Imie</th>
+              <th>Nazwisko</th>
+              <th>Sprzet</th>
+              <th>Status</th>
+              <th></th>
+          </tr>
+          </thead>
+          <tbody>
+
+          <tr *ngFor="let item of rentals">
+              <td>{{item.DataOd}}</td>
+              <td>{{item.DataDo}}</td>
+              <td>{{item.Imie}}</td>
+              <td>{{item.Nazwisko}}</td>
+              <td *ngIf="item.IdNarty">Narty, id:{{item.IdNarty}}</td>
+              <td *ngIf="item.IdSnowboard">Snowboard, id:{{item.IdSnowboard}}</td>
+              <td *ngIf="item.IdKijki">Kijki, id:{{item.IdKijki}}</td>
+              <td *ngIf="item.IdButy">Buty, id:{{item.IdButy}}</td>
+              <td>{{item.NazwaStatus}}</td>
+              <td>
+                  <button *ngIf="item.IdStatus != 4" pButton type="button" (click)="returnEquipment(item.IdSprzet, item.Id, false)"  class="ui-button-secondary" label="Zwróc"></button>
+              </td>
+          </tr>
+          </tbody>
+      </table>
+
+
+  </mat-tab>
+
+
+
+
+
+  <mat-tab label="Formularz">
+    <div class="col-sm-12">
+    <form [formGroup] = "rentForm" (ngSubmit)="addRent()">
+
+      <ng-container>
+      <div class="form-group row">
+      <label for="sprzet" class="col-sm-2 col-form-label">Sprzet</label>
+      <div class="col-sm-6">
+        <mat-accordion name="sprzet">
+            <mat-expansion-panel>
+              <mat-expansion-panel-header>
+                <mat-panel-title>
+                  Sprzęt
+                </mat-panel-title>
+              </mat-expansion-panel-header>
+              <ul>-->
+                <!--
+                <ng-container *ngIf="snowboard">
+                  <li *ngFor="let item of snowboard">
+                    Snowboard {{item.Model}} {{item.Dlugosc}} {{item.NazwaProducent}} {{item.NazwaPlec}} {{item.NazwaPrzeznaczenie}}
+                  </li>
+                </ng-container>
+
+                <ng-container *ngIf="skis">
+                  <li *ngFor="let item of skis">
+                    Narty {{item.Model}} {{item.Dlugosc}} {{item.NazwaProducent}} {{item.NazwaPlec}} {{item.NazwaPrzeznaczenie}}
+                  </li>
+                </ng-container>
+                <ng-container *ngIf="skiPoles">
+                  <li *ngFor="let item of skiPoles">
+                    Kijki {{item.Model}} {{item.Dlugosc}} {{item.NazwaProducent}} {{item.NazwaPlec}}
+                  </li>
+                </ng-container>
+                <ng-container *ngIf="boots">
+                  <li *ngFor="let item of boots">
+                    Buty {{item.Model}} {{item.Rozmiar}} {{item.NazwaKategoria}} {{item.NazwaProducent}} {{item.NazwaPlec}}
+                  </li>
+                </ng-container>
+
+              </ul>
+
+            </mat-expansion-panel>
+          </mat-accordion>
+        </div>
+      </div>
+    </ng-container>
+
+        <div class="form-group row">
+            <label for="klient" class="col-sm-2 col-form-label">Klient</label>
+            <div class="col-sm-6">
+                <input formControlName="klient" class="form-control" placeholder="Klient" id="klient" name="klient" [matAutocomplete]="auto">
+                <mat-autocomplete #auto="matAutocomplete">
+                  <mat-option *ngFor="let customer of filteredCustomers | async" [value]="customer.Imie +' '+customer.Nazwisko" (click)="update(customer.Id)">
+                    <span>{{customer.Nazwisko}} {{customer.Imie}}</span> |
+                    <small>Telefon: {{customer.Telefon}}</small>
+                  </mat-option>
+                </mat-autocomplete>
+            </div>
+          </div>
+
+          <div class="form-group row">
+            <label for="dataOd" class="col-sm-2 col-form-label">Początek wypożyczenia</label>
+            <div class="col-sm-6">
+              <p-calendar formControlName="dataOd" id="dataOd" name="dataOd" ></p-calendar>
+            </div>
+          </div>
+
+          <div class="form-group row">
+            <label for="dataDo" class="col-sm-2 col-form-label">Koniec wypożyczenia</label>
+            <div class="col-sm-6">
+              <p-calendar formControlName="dataDo" id="dataDo" name="dataDo" ></p-calendar>
+            </div>
+          </div>
+
+          <div class="form-group row">
+            <label for="pracownik" class="col-sm-2 col-form-label">Pracownik</label>
+            <div class="col-sm-6">
+                <input formControlName="pracownik" type="text" class="form-control" id="pracownik" name="pracownik">
+            </div>
+          </div>
+
+          <div class="form-group row">
+            <label for="cena" class="col-sm-2 col-form-label">Cena</label>
+            <div class="col-sm-6">
+                <input formControlName="cena" type="text" class="form-control" id="cena" name="cena" required>
+            </div>
+          </div>
+
+
+
+
+
+
+        <div class="form-group row">
+          <label class="col-sm-2 col-form-label"></label>
+          <div class="col-sm-5">
+            <button class="btn btn-primary" type="submit">Wypozycz</button>
+          </div>
+        </div>
+  </form>
+</div>
+
+  </mat-tab>
+</mat-tab-group>
+-->

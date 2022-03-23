@@ -1,0 +1,128 @@
+#włączenie mod_rewrite
+Options +FollowSymLinks
+RewriteEngine On
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+
+#Snowboard
+RewriteRule ^Snowboard/?$ index.php?controller=Snowboard&action=getAll [L]
+RewriteRule ^Snowboard/pojedyncze?$ index.php?controller=Snowboard&action=getAllSingle [L]
+RewriteRule ^Snowboard/rezerwacja/(\d+)?$ index.php?controller=Snowboard&action=reservation&id=$1 [L]
+RewriteRule ^Snowboard/zarzadzaj?$ index.php?controller=Snowboard&action=getAllSnowboard [L]
+RewriteRule ^Snowboard/dodaj?$ index.php?controller=Snowboard&action=addform [L]
+RewriteRule ^Snowboard/wstaw?$ index.php?controller=Snowboard&action=add [L]
+RewriteRule ^Snowboard/usun/(\d+)/?$ index.php?controller=Snowboard&action=delete&id=$1 [L]
+RewriteRule ^Snowboard/(\d+)/?$ index.php?controller=Snowboard&action=getOne&id=$1 [L]
+RewriteRule ^Snowboard/edytuj?$ index.php?controller=Snowboard&action=edit [L]
+RewriteRule ^Snowboard/ustawienie?$ index.php?controller=Snowboard&action=getSnowboardLeg [L]
+RewriteRule ^Snowboard/data?$ index.php?controller=Snowboard&action=getByDate [L]
+
+
+
+
+#Narty
+RewriteRule ^Narty/?$ index.php?controller=Narty&action=getAll [L]
+RewriteRule ^Narty/pojedyncze?$ index.php?controller=Narty&action=getAllSingle [L]
+RewriteRule ^Narty/wstaw?$ index.php?controller=Narty&action=add [L]
+RewriteRule ^Narty/(\d+)/?$ index.php?controller=Narty&action=getOne&id=$1 [L]
+RewriteRule ^Narty/edytuj?$ index.php?controller=Narty&action=edit [L]
+RewriteRule ^Narty/usun/(\d+)/?$ index.php?controller=Narty&action=delete&id=$1 [L]
+RewriteRule ^Narty/data?$ index.php?controller=Narty&action=getByDate [L]
+
+#Pracownik
+RewriteRule ^Pracownik/?$ index.php?controller=Pracownik&action=getAll [L]
+RewriteRule ^Pracownik/wstaw?$ index.php?controller=Pracownik&action=add [L]
+RewriteRule ^Pracownik/dezaktywuj/(\d+)/?$ index.php?controller=Pracownik&action=deactivate&id=$1 [L]
+RewriteRule ^Pracownik/(\d+)/?$ index.php?controller=Pracownik&action=getOne&id=$1 [L]
+RewriteRule ^Pracownik/(\w+)/?$ index.php?controller=Pracownik&action=getByUsername&id=$1 [L]
+RewriteRule ^Pracownik/edytuj?$ index.php?controller=Pracownik&action=edit [L]
+
+#Uzytkownik
+RewriteRule ^Uzytkownik/?$ index.php?controller=Uzytkownik&action=getAll [L]
+RewriteRule ^Uzytkownik/(\d+)/?$ index.php?controller=Uzytkownik&action=getOne&id=$1 [L]
+RewriteRule ^Uzytkownik/wstaw?$ index.php?controller=Uzytkownik&action=add [L]
+RewriteRule ^Uzytkownik/edytuj?$ index.php?controller=Uzytkownik&action=edit [L]
+RewriteRule ^Uzytkownik/dezaktywuj/(\d+)/?$ index.php?controller=Uzytkownik&action=deactivate&id=$1 [L]
+RewriteRule ^Uzytkownik/(\w+)/?$ index.php?controller=Uzytkownik&action=getByUsername&id=$1 [L]
+
+#Klient
+RewriteRule ^Klient/?$ index.php?controller=Klient&action=getAll [L]
+RewriteRule ^Klient/wstaw?$ index.php?controller=Klient&action=add [L]
+RewriteRule ^Klient/usun/(\d+)/?$ index.php?controller=Klient&action=delete&id=$1 [L]
+RewriteRule ^Klient/(\d+)/?$ index.php?controller=Klient&action=getOne&id=$1 [L]
+RewriteRule ^Klient/edytuj?$ index.php?controller=Klient&action=edit [L]
+RewriteRule ^Klient/rezerwacje/update?$ index.php?controller=Klient&action=updateAmountReservation [L]
+
+#Kijki
+RewriteRule ^Kijki/?$ index.php?controller=Kijki&action=getAll [L]
+RewriteRule ^Kijki/pojedyncze?$ index.php?controller=Kijki&action=getAllSingle [L]
+RewriteRule ^Kijki/wstaw?$ index.php?controller=Kijki&action=add [L]
+RewriteRule ^Kijki/usun/(\d+)/?$ index.php?controller=Kijki&action=delete&id=$1 [L]
+RewriteRule ^Kijki/(\d+)/?$ index.php?controller=Kijki&action=getOne&id=$1 [L]
+RewriteRule ^Kijki/edytuj?$ index.php?controller=Kijki&action=edit [L]
+RewriteRule ^Kijki/data?$ index.php?controller=Kijki&action=getByDate [L]
+
+#Buty
+RewriteRule ^Buty/?$ index.php?controller=Buty&action=getAll [L]
+RewriteRule ^Buty/pojedyncze?$ index.php?controller=Buty&action=getAllSingle [L]
+RewriteRule ^Buty/wstaw?$ index.php?controller=Buty&action=add [L]
+RewriteRule ^Buty/usun/(\d+)/?$ index.php?controller=Buty&action=delete&id=$1 [L]
+RewriteRule ^Buty/(\d+)/?$ index.php?controller=Buty&action=getOne&id=$1 [L]
+RewriteRule ^Buty/edytuj?$ index.php?controller=Buty&action=edit [L]
+RewriteRule ^Buty/data?$ index.php?controller=Buty&action=getByDate [L]
+
+#Rezerwacja
+RewriteRule ^Rezerwacja/?$ index.php?controller=Rezerwacja&action=getAll [L]
+RewriteRule ^Rezerwacja/(\d+)/?$ index.php?controller=Rezerwacja&action=getOneByIdReservation&id=$1 [L]
+RewriteRule ^Rezerwacja/dodaj?$ index.php?controller=Rezerwacja&action=add [L]
+RewriteRule ^Rezerwacja/wyczysc?$ index.php?controller=Rezerwacja&action=clearList [L]
+RewriteRule ^Rezerwacja/zmien?$ index.php?controller=Rezerwacja&action=changeStatus [L]
+RewriteRule ^Rezerwacja/usun/(\d+)/?$ index.php?controller=Rezerwacja&action=delete&id=$1&id2=$1 [L]
+RewriteRule ^Rezerwacja/nartyopcje/(\d+)/?$ index.php?controller=Rezerwacja&action=getSkisOptions&id=$1 [L]
+RewriteRule ^Rezerwacja/deskaopcje/(\d+)/?$ index.php?controller=Rezerwacja&action=getSnowboardOptions&id=$1 [L]
+
+
+#Wypożyczenie
+RewriteRule ^Wypozyczenie/?$ index.php?controller=Wypozyczenie&action=getAll [L]
+
+
+#dostep
+RewriteRule ^dostep/formularz/?$ index.php?controller=Dostep&action=logform [L]
+RewriteRule ^dostep/logowanie?$ index.php?controller=Dostep&action=login [L]
+RewriteRule ^dostep/wyloguj/?$ index.php?controller=Dostep&action=logout [L]
+
+#wypozyczenia
+RewriteRule ^Wypozyczenia/?$ index.php?controller=Wypozyczenie&action=getAll [L]
+RewriteRule ^Wypozyczenia/formularz?$ index.php?controller=Wypozyczenie&action=addform [L]
+RewriteRule ^Wypozyczenia/dodaj?$ index.php?controller=Wypozyczenie&action=add [L]
+RewriteRule ^Wypozyczenia/zakoncz/?$ index.php?controller=Wypozyczenie&action=returnEquipment [L]
+
+#serwis
+RewriteRule ^Serwis/czynnosci?$ index.php?controller=Serwis&action=getAllServiceActivity [L]
+RewriteRule ^Serwis/wstaw?$ index.php?controller=Serwis&action=addActivityToEquipment [L]
+RewriteRule ^Serwis/(\d+)/?$ index.php?controller=Serwis&action=getOneServiceEquipmentHistory&id=$1 [L]
+
+#Sprzet
+RewriteRule ^Sprzet/serwis/?$ index.php?controller=Sprzet&action=getAllToService [L]
+RewriteRule ^Sprzet/statystyki/?$ index.php?controller=Sprzet&action=getStatistics [L]
+
+#Przeznaczenie
+RewriteRule ^Przeznaczenie/?$ index.php?controller=Przeznaczenie&action=getAll [L]
+
+#Producent
+RewriteRule ^Producent/?$ index.php?controller=Producent&action=getAll [L]
+RewriteRule ^Producent/wstaw?$ index.php?controller=Producent&action=add [L]
+RewriteRule ^Producent/usun/(\d+)/?$ index.php?controller=Producent&action=delete&id=$1 [L]
+RewriteRule ^Producent/(\d+)/?$ index.php?controller=Producent&action=getOne&id=$1 [L]
+RewriteRule ^Producent/edytuj?$ index.php?controller=Producent&action=edit [L]
+
+#Plec
+RewriteRule ^Plec/?$ index.php?controller=Plec&action=getAll [L]
+
+#Prawo
+RewriteRule ^Prawo/?$ index.php?controller=Prawo&action=getAll [L]
+
+#ButyKategoria
+RewriteRule ^ButyKategoria/?$ index.php?controller=ButyKategoria&action=getAll [L]

@@ -1,0 +1,164 @@
+<p-toast position="top-right"></p-toast>
+<div class="container">
+<h1>Serwis sprzętu</h1>
+ <!--nowa tabela-->
+ <p-table #dt [columns]="cols" [value]="equipment" [paginator]="true" [rows]="10">
+    <ng-template pTemplate="header" let-columns>
+        <tr>
+          <ng-container *ngFor="let col of columns">
+            <th>{{col.header}}</th>
+          </ng-container>
+          <th></th>
+        </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-rowData let-columns="columns">
+        <tr>
+          <ng-container *ngFor="let col of columns">
+            <td *ngIf="col.field === 'Sprzet' && rowData['IdSnowboard'] !== null">
+              Snowboard
+              <ng-container *ngFor="let item of snowboardList">
+                <ng-container *ngIf="item.IdSnowboard === rowData['IdSnowboard']">
+                  {{item.NazwaProducent}} {{item.Model}} {{item.Dlugosc}} {{item.NazwaPlec}} {{item.NazwaPrzeznaczenie}}
+                </ng-container>
+              </ng-container>
+          </td>
+          <td *ngIf="col.field === 'Sprzet' && rowData['IdNarty'] !== null">
+            Narty
+            <ng-container *ngFor="let item of skisList">
+              <ng-container *ngIf="item.IdNarty === rowData['IdNarty']">
+                {{item.NazwaProducent}} {{item.Model}} {{item.Dlugosc}} {{item.NazwaPlec}} {{item.NazwaPrzeznaczenie}}
+              </ng-container>
+            </ng-container>
+          </td>
+          <td *ngIf="col.field === 'Sprzet' && rowData['IdKijki'] !== null">
+            Kijki narciarskie
+            <ng-container *ngFor="let item of skiPolesList">
+              <ng-container *ngIf="item.IdKijki === rowData['IdKijki']">
+                {{item.NazwaProducent}} {{item.Model}} {{item.Dlugosc}} {{item.NazwaPlec}}
+              </ng-container>
+            </ng-container>
+          </td>
+          <td *ngIf="col.field === 'Sprzet' && rowData['IdButy'] !== null">
+            Buty
+            <ng-container *ngFor="let item of bootsList">
+              <ng-container *ngIf="item.IdButy === rowData['IdButy']">
+                {{item.NazwaProducent}} {{item.Model}} {{item.NazwaKategoria}} {{item.NazwaPlec}}
+              </ng-container>
+            </ng-container>
+          </td>
+          </ng-container>
+          <td>
+              <button *ngIf="rowData['IdSnowboard']" pButton type="button" (click)="changeDisplayForm(rowData['Id'], rowData['IdSnowboard'], 'snowboard')"   label="Serwisuj"></button>
+              <button *ngIf="rowData['IdNarty']" pButton type="button" (click)="changeDisplayForm(rowData['Id'], rowData['IdNarty'], 'skis')"   label="Serwisuj"></button>
+              <button *ngIf="rowData['IdKijki']" pButton type="button" (click)="changeDisplayForm(rowData['Id'], rowData['IdKijki'], 'skiPoles')"   label="Serwisuj"></button>
+              <button *ngIf="rowData['IdButy']" pButton type="button" (click)="changeDisplayForm(rowData['Id'], rowData['IdButy'], 'boots')"   label="Serwisuj"></button>
+              <button pButton type="button" (click)="getEquipmentHistory(rowData['Id'])"  class="ui-button-secondary" label="Historia"></button>
+          </td>
+        </tr>
+    </ng-template>
+</p-table>
+</div>
+
+<!--koniec tabeli nowej-->
+<p-dialog header="Serwis" [(visible)]="displayForm" [modal]="true" [responsive]="true" [width]="600" [minWidth]="500" [minHeight]="80"
+        [maximizable]="true" [baseZIndex]="10000">
+
+        <form [formGroup] = "serviceForm">
+            <div class="form-group row">
+                <label for="idSprzet" class="col-sm-2 col-form-label">Sprzet</label>
+                <div class="col-sm-6">
+                    <input formControlName="idSprzet" type="text" class="form-control" id="idSprzet" name="idSprzet" required disabled>
+                  </div>
+              </div>
+
+              <div class="form-group row">
+                  <label for="pracownik" class="col-sm-2 col-form-label">Pracownik</label>
+                  <div class="col-sm-6">
+                      <input formControlName="pracownik" type="text" class="form-control" id="pracownik" name="pracownik" required disabled>
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <label for="data" class="col-sm-2 col-form-label">Data</label>
+                    <div class="col-sm-6">
+                        <input formControlName="data" type="text" class="form-control" id="data" name="data" required disabled>
+                      </div>
+                  </div>
+
+                  <div class="form-group row">
+                    <label for="idCzynnosc" class="col-sm-2 col-form-label">Wykonana czynnosc</label>
+                    <div class="col-sm-6">
+                        <select formControlName="idCzynnosc" class="form-control" id="idCzynnosc" name="idCzynnosc">
+                          <option *ngFor="let item of serviceActivity" [value]="item.Id">{{item.NazwaCzynnosc}}</option>
+                        </select>
+                    </div>
+                  </div>
+
+                  <div class="form-group row">
+                      <label for="opis" class="col-sm-2 col-form-label">Opis</label>
+                      <div class="col-sm-6">
+                          <textarea formControlName="opis" type="text" class="form-control" id="opis" name="opis" required maxlength="300" placeholder="Opis...">
+                            </textarea>
+                        </div>
+                    </div>
+
+              <div class="form-group row">
+                <label class="col-sm-2 col-form-label"></label>
+                <div class="col-sm-6">
+                  <button (click)="addServisActivity()" class="btn btn-primary" type="submit">Dodaj</button>
+                </div>
+              </div>
+        </form>
+
+        <p-footer>
+            <button type="button" pButton icon="pi pi-times" (click)="displayForm=false" label="Zamknij" class="ui-button-secondary"></button>
+        </p-footer>
+</p-dialog>
+
+<p-dialog header="Historia serwisowa" [(visible)]="displayHistory" [modal]="true" [responsive]="true" [width]="600" [minWidth]="500" [minHeight]="300"
+        [maximizable]="true" [baseZIndex]="10000">
+
+
+        <!--nowa tabela-->
+ <p-table #his [columns]="colsHistory" [value]="equipmentHistory" [paginator]="true" [rows]="5">
+    <ng-template pTemplate="header" let-columns>
+        <tr>
+            <ng-container *ngFor="let col of columns">
+              <th [pSortableColumn]="col.field">
+                  {{col.header}}
+                  <p-sortIcon [field]="col.field" ariaLabel="Activate to sort" ariaLabelDesc="Activate to sort in descending order" ariaLabelAsc="Activate to sort in ascending order"></p-sortIcon>
+              </th>
+            </ng-container>
+          </tr>
+        <tr>
+            <ng-container *ngFor="let col of columns">
+              <th [ngSwitch]="col.field">
+                  <input id="inputModel" *ngSwitchCase="'Data'" pInputText type="text" (input)="his.filter($event.target.value, col.field, col.filterMatchMode)">
+                  <input id="inputModel" *ngSwitchCase="'NazwaCzynnosc'" pInputText type="text" (input)="his.filter($event.target.value, col.field, col.filterMatchMode)">
+                  <input id="inputModel" *ngSwitchCase="'Opis'" pInputText type="text" (input)="his.filter($event.target.value, col.field, col.filterMatchMode)">
+                  <input id="inputModel" *ngSwitchCase="'Nazwisko'" pInputText type="text" (input)="his.filter($event.target.value, col.field, col.filterMatchMode)">
+              </th>
+            </ng-container>
+          </tr>
+
+    </ng-template>
+    <ng-template pTemplate="body" let-rowData let-columns="columns">
+        <tr>
+            <ng-container *ngFor="let col of columns">
+                <td *ngIf="col.field != 'Data' && col.field != 'Nazwisko'">
+                    {{rowData[col.field]}}
+                </td>
+                <td *ngIf="col.field === 'Data'">
+                    {{rowData[col.field] | date:'dd/MM/yyyy'}}
+                </td>
+                <td *ngIf="col.field === 'Nazwisko'">
+                  {{rowData[col.field]}} {{rowData['Imie']}}
+              </td>
+              </ng-container>
+        </tr>
+    </ng-template>
+</p-table>
+        <p-footer>
+            <button type="button" pButton icon="pi pi-times" (click)="displayHistory=false" label="Zamknij" class="ui-button-secondary"></button>
+        </p-footer>
+</p-dialog>

@@ -1,0 +1,127 @@
+<p-toast position="top-right"></p-toast>
+<p-dialog header="Usuń pracownika" [(visible)]="displayDialog" [modal]="true" [responsive]="true" [width]="350" [minWidth]="200" [minHeight]="80"
+        [maximizable]="true" [baseZIndex]="10000">
+    <span>
+      Czy na pewno chcesz dezaktywować pracownika <strong>{{idEmployeeToDeactivate}}</strong>?
+    </span>
+        <p-footer>
+            <button type="button" pButton icon="pi pi-check" (click)="deactivateEmployee(idEmployeeToDeactivate)" label="Yes"></button>
+            <button type="button" pButton icon="pi pi-times" (click)="displayDialog=false" label="No" class="ui-button-secondary"></button>
+        </p-footer>
+</p-dialog>
+<ng-container *ngIf="adminPanelView.isForm === false">
+  <table class="table">
+      <thead class="thead-light">
+      <tr>
+          <th *ngIf="adminPanelView.isExtendList">Id</th>
+          <th>Imie</th>
+          <th>Nazwisko</th>
+          <th>Telefon</th>
+          <th>Email</th>
+          <th>Nazwa Uzytkownika</th>
+          <th>Prawo</th>
+          <th>Status</th>
+          <th *ngIf="adminPanelView.isExtendList"></th>
+      </tr>
+      </thead>
+      <tbody>
+
+      <tr *ngFor="let item of employee">
+          <td *ngIf="adminPanelView.isExtendList">{{item.Id}}</td>
+          <td>{{item.Imie}}</td>
+          <td>{{item.Nazwisko}}</td>
+          <td>{{item.Telefon}}</td>
+          <td>{{item.Email}}</td>
+          <td>{{item.NazwaUzytkownik}}</td>
+          <td>{{item.NazwaPrawo}}</td>
+          <td *ngIf="item.Aktywny == 1">Aktywny</td>
+          <td *ngIf="item.Aktywny == 0">Nieaktywny</td>
+          <td *ngIf="adminPanelView.isExtendList">
+              <button (click)="editEmployee(item.Id)" type="button" class="btn btn-light">Edycja</button>
+              <button *ngIf="item.Aktywny == 1" (click)="showDialog(item.Id)" type="button" class="btn btn-light">Dezaktywuj</button>
+          </td>
+      </tr>
+      </tbody>
+  </table>
+  </ng-container>
+
+  <ng-container *ngIf="adminPanelView.isForm">
+    <form [formGroup] = "employeeForm" (ngSubmit)="addEmployee()">
+      <div class="form-group row">
+          <label for="imie" class="col-sm-2 col-form-label">Imie</label>
+          <div class="col-sm-6">
+              <input formControlName="imie" type="text" class="form-control" id="imie" name="imie"  placeholder="Imie" required>
+              <div class="alert alert-danger" role="alert" *ngIf="formErrors.imie">
+                {{formErrors.imie}}
+              </div>
+            </div>
+        </div>
+
+        <div class="form-group row">
+          <label for="nazwisko" class="col-sm-2 col-form-label">Nazwisko</label>
+          <div class="col-sm-6">
+            <input formControlName="nazwisko" type="text" class="form-control" id="nazwisko" name="nazwisko"  placeholder="Nazwisko" required>
+            <div class="alert alert-danger" role="alert" *ngIf="formErrors.nazwisko">
+              {{formErrors.nazwisko}}
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group row">
+          <label for="telefon" class="col-sm-2 col-form-label">Telefon</label>
+          <div class="col-sm-6">
+            <input formControlName="telefon" type="text" class="form-control" id="telefon" name="telefon"  placeholder="Telefon" required>
+            <div class="alert alert-danger" role="alert" *ngIf="formErrors.telefon">
+              {{formErrors.telefon}}
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group row">
+          <label for="email" class="col-sm-2 col-form-label">E-mail</label>
+          <div class="col-sm-6">
+              <input formControlName="email" type="text" class="form-control" id="email" name="email"  placeholder="E-mail" required>
+              <div class="alert alert-danger" role="alert" *ngIf="formErrors.email">
+                {{formErrors.email}}
+              </div>
+            </div>
+        </div>
+
+        <div *ngIf="!isEditMode" class="form-group row">
+          <label for="nazwaUzytkownik" class="col-sm-2 col-form-label">Nazwa uzytkownika</label>
+          <div class="col-sm-6">
+              <input formControlName="nazwaUzytkownik" type="text" class="form-control" id="nazwaUzytkownik" name="nazwaUzytkownik"  placeholder="Nazwa uzytkownika" required>
+              <div class="alert alert-danger" role="alert" *ngIf="formErrors.nazwaUzytkownik">
+                {{formErrors.nazwaUzytkownik}}
+              </div>
+            </div>
+        </div>
+
+        <div *ngIf="!isEditMode" class="form-group row">
+          <label for="haslo" class="col-sm-2 col-form-label">Haslo</label>
+          <div class="col-sm-6">
+              <input formControlName="haslo" type="password" class="form-control" id="haslo" name="haslo"  placeholder="Hasło użytkownika" required>
+              <div class="alert alert-danger" role="alert" *ngIf="formErrors.haslo">
+                {{formErrors.haslo}}
+              </div>
+            </div>
+        </div>
+
+        <div *ngIf="!isEditMode" class="form-group row">
+          <label for="prawo" class="col-sm-2 col-form-label">Prawo</label>
+          <div class="col-sm-6">
+              <select formControlName="prawo" class="form-control" id="prawo" name="prawo">
+                <option *ngFor="let item of principle" [value]="item.Id">{{item.NazwaPrawo}}</option>
+              </select>
+          </div>
+        </div>
+
+        <div class="form-group row">
+          <label class="col-sm-2 col-form-label"></label>
+          <div class="col-sm-6">
+            <button [disabled]="employeeForm.invalid" class="btn btn-primary" type="submit">Dodaj</button>
+          </div>
+        </div>
+  </form>
+
+    </ng-container>

@@ -1,0 +1,31 @@
+<p-toast position="top-right"></p-toast>
+<div class="container">
+  <div class="text-center">
+      <h1>Logowanie</h1>
+  </div>
+  <div class="row h-100 justify-content-center align-items-center">
+<form [formGroup] = "loginForm" (ngSubmit)="login()">
+  <div class="form-group">
+          <input formControlName="login" type="text" class="form-control" id="login" name="login"  placeholder="Nazwa użytkownika" required>
+          <div class="alert alert-danger" role="alert" *ngIf="formErrors.login">
+            {{formErrors.login}}
+          </div>
+    </div>
+
+    <div class="form-group">
+          <input formControlName="password" type="password" class="form-control" id="password" name="password"  placeholder="Hasło" required>
+          <div class="alert alert-danger" role="alert" *ngIf="formErrors.password">
+            {{formErrors.password}}
+          </div>
+    </div>
+
+    <div class="form-group">
+            <re-captcha formControlName="recaptcha" siteKey="6LcOuyYTAAAAAHTjFuqhA52fmfJ_j5iFk5PsfXaU"></re-captcha>
+      </div>
+
+    <div class="form-group">
+        <button [disabled]="loginForm.invalid" class="btn btn-primary" type="submit">Zaloguj</button>
+    </div>
+</form>
+</div>
+</div>

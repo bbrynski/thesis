@@ -1,0 +1,17 @@
+/* You can add global styles to this file, and also import other style files */
+
+@import "~@angular/material/prebuilt-themes/indigo-pink.css";
+
+body {
+  margin: 0;
+  padding: 0;
+}
+
+#cdk-step-content-0-2.mat-horizontal-stepper-content.ng-trigger.ng-trigger-stepTransition.ng-tns-c2-0.ng-star-inserted,
+.mat-horizontal-content-container {
+  overflow: -webkit-paged-y;
+}
+
+.ui-calendar .ui-datepicker{
+  position: relative;
+}

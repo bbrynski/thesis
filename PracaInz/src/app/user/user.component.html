@@ -1,0 +1,147 @@
+<p-toast position="top-right"></p-toast>
+<p-dialog header="Dezaktywuj" [(visible)]="displayDialog" [modal]="true" [responsive]="true" [width]="350" [minWidth]="200" [minHeight]="80"
+        [maximizable]="true" [baseZIndex]="10000">
+    <span>
+      Czy na pewno chcesz dezaktywować uzytkownika <strong>{{idUserToDeactivate}}</strong>?
+    </span>
+        <p-footer>
+            <button type="button" pButton icon="pi pi-check" (click)="deactivateUser(idUserToDeactivate)" label="Yes"></button>
+            <button type="button" pButton icon="pi pi-times" (click)="displayDialog=false" label="No" class="ui-button-secondary"></button>
+        </p-footer>
+</p-dialog>
+<ng-container *ngIf="adminPanelView.isForm === false">
+    <h1 class="mt-2 mb-2">Lista użytkowników</h1>
+    <p-table #dt [columns]="cols" [value]="user" [paginator]="true" [rows]="10" [responsive]="true">
+        <ng-template pTemplate="header" let-columns>
+            <tr>
+              <ng-container *ngFor="let col of columns">
+                <th [pSortableColumn]="col.field">
+                    <span class="ui-column-title">{{col.header}}</span>
+
+                    <p-sortIcon [field]="col.field" ariaLabel="Activate to sort" ariaLabelDesc="Activate to sort in descending order" ariaLabelAsc="Activate to sort in ascending order"></p-sortIcon>
+                </th>
+              </ng-container>
+              <th></th>
+              <th></th>
+              <th></th>
+            </tr>
+            <tr>
+                <ng-container *ngFor="let col of columns">
+                  <th [ngSwitch]="col.field">
+                      <input id="inputModel" *ngSwitchCase="'Imie'" pInputText type="text" (input)="dt.filter($event.target.value, col.field, col.filterMatchMode)">
+                      <input id="inputModel" *ngSwitchCase="'Nazwisko'" pInputText type="text" (input)="dt.filter($event.target.value, col.field, col.filterMatchMode)">
+                      <input id="inputModel" *ngSwitchCase="'Telefon'" pInputText type="text" (input)="dt.filter($event.target.value, col.field, col.filterMatchMode)">
+                      <input id="inputModel" *ngSwitchCase="'Email'" pInputText type="text" (input)="dt.filter($event.target.value, col.field, col.filterMatchMode)">
+                      <input id="inputModel" *ngSwitchCase="'NazwaUzytkownik'" pInputText type="text" (input)="dt.filter($event.target.value, col.field, col.filterMatchMode)">
+                      <p-dropdown  *ngSwitchCase="'NazwaPrawo'" [options]="select" [style]="{'width':'100%'}"  (onChange)="dt.filter($event.value, col.field, 'equals')"></p-dropdown>
+                  </th>
+                </ng-container>
+                <th></th>
+                <th></th>
+                <th></th>
+              </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-rowData let-columns="columns">
+            <tr>
+              <ng-container *ngFor="let col of columns">
+                <td>
+                    {{rowData[col.field]}}
+                </td>
+              </ng-container>
+              <td>
+                  <button  (click)="editUser(rowData['Id'])" icon="pi pi-pencil" pButton type="button" label="Edycja"></button>
+              </td>
+              <td>
+                  <button *ngIf="isAdmin" icon="pi pi-times" pButton type="button" label="Usuń" class="ui-button-danger"></button>
+              </td>
+              <td>
+                  <button *ngIf="rowData['Aktywny'] == 1" (click)="showDialog(rowData['Id'])" icon="pi pi-times" pButton type="button" label="Dezaktywuj" class="ui-button-secondary"></button>
+              </td>
+            </tr>
+        </ng-template>
+    </p-table>
+  </ng-container>
+
+  <ng-container *ngIf="adminPanelView.isForm">
+      <h1 *ngIf="isEditMode">Edycja danych użytkownika</h1>
+      <h1 *ngIf="!isEditMode">Dodanie danych użytkownika</h1>
+    <form [formGroup] = "userForm" (ngSubmit)="addUser()">
+      <div class="form-group row">
+          <label for="imie" class="col-sm-2 col-form-label">Imie</label>
+          <div class="col-sm-6">
+              <input formControlName="imie" type="text" class="form-control" id="imie" name="imie"  placeholder="Imie" required>
+              <div class="alert alert-danger" role="alert" *ngIf="formErrors.imie">
+                {{formErrors.imie}}
+              </div>
+            </div>
+        </div>
+
+        <div class="form-group row">
+          <label for="nazwisko" class="col-sm-2 col-form-label">Nazwisko</label>
+          <div class="col-sm-6">
+            <input formControlName="nazwisko" type="text" class="form-control" id="nazwisko" name="nazwisko"  placeholder="Nazwisko" required>
+            <div class="alert alert-danger" role="alert" *ngIf="formErrors.nazwisko">
+              {{formErrors.nazwisko}}
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group row">
+          <label for="telefon" class="col-sm-2 col-form-label">Telefon</label>
+          <div class="col-sm-6">
+            <input formControlName="telefon" type="text" class="form-control" id="telefon" name="telefon"  placeholder="Telefon" required>
+            <div class="alert alert-danger" role="alert" *ngIf="formErrors.telefon">
+              {{formErrors.telefon}}
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group row">
+          <label for="email" class="col-sm-2 col-form-label">E-mail</label>
+          <div class="col-sm-6">
+              <input formControlName="email" type="text" class="form-control" id="email" name="email"  placeholder="E-mail" required>
+              <div class="alert alert-danger" role="alert" *ngIf="formErrors.email">
+                {{formErrors.email}}
+              </div>
+            </div>
+        </div>
+
+        <div  class="form-group row">
+          <label for="nazwaUzytkownik" class="col-sm-2 col-form-label">Nazwa uzytkownika</label>
+          <div class="col-sm-6">
+              <input formControlName="nazwaUzytkownik" type="text" class="form-control" id="nazwaUzytkownik" name="nazwaUzytkownik"  placeholder="Nazwa uzytkownika" required>
+              <div class="alert alert-danger" role="alert" *ngIf="formErrors.nazwaUzytkownik">
+                {{formErrors.nazwaUzytkownik}}
+              </div>
+            </div>
+        </div>
+
+        <div class="form-group row">
+          <label for="haslo" class="col-sm-2 col-form-label">Haslo</label>
+          <div class="col-sm-6">
+              <input formControlName="haslo" type="password" class="form-control" id="haslo" name="haslo"  placeholder="Hasło użytkownika" required>
+              <div class="alert alert-danger" role="alert" *ngIf="formErrors.haslo">
+                {{formErrors.haslo}}
+              </div>
+            </div>
+        </div>
+
+        <div class="form-group row">
+          <label for="prawo" class="col-sm-2 col-form-label">Prawo</label>
+          <div class="col-sm-6">
+              <select formControlName="prawo" class="form-control" id="prawo" name="prawo">
+                <option *ngFor="let item of principle" [value]="item.Id">{{item.NazwaPrawo}}</option>
+              </select>
+          </div>
+        </div>
+
+        <div class="form-group row">
+          <label class="col-sm-2 col-form-label"></label>
+          <div class="col-sm-6">
+            <button *ngIf="!isEditMode" [disabled]="userForm.invalid" class="btn btn-primary" type="submit">Dodaj</button>
+            <button *ngIf="isEditMode" [disabled]="userForm.invalid" class="btn btn-primary" type="submit">Zapisz zmiany</button>
+          </div>
+        </div>
+  </form>
+
+    </ng-container>
